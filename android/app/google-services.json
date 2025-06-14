@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "877236744865",
+    "project_id": "code-race-2aa77",
+    "storage_bucket": "code-race-2aa77.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:877236744865:android:4d50da338ec41b77a876e0",
+        "android_client_info": {
+          "package_name": "com.claudiopensando.coderace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "877236744865-7fipjqn6ka9a0lk2gcd86bg80s4h7fea.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.claudiopensando.coderace",
+            "certificate_hash": "9bbb3186b2189ef16d8f272bdab59362c395cbb4"
+          }
+        },
+        {
+          "client_id": "877236744865-860dekkvv5j9nru63c4h2v8166d2j1dh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWfH6mwvf9OgMqu7P2Gz-J6cxPKnwttSs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "877236744865-860dekkvv5j9nru63c4h2v8166d2j1dh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "877236744865-jf342nipabk9vdbpi064r0qctv5dube0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.claudiopensando.coderace"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
