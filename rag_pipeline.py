@@ -25,188 +25,58 @@ class FitnessNutritionRAG:
         self.fitness_data = self._load_fitness_data()
         self.food_data = self._load_food_data()
         
-        # Create knowledge base chunks
-        self.knowledge_chunks = []
-        self.chunk_embeddings = None
+        # Separate fitness knowledge (static) from food chunks (RAG)
+        self.fitness_knowledge = {}
+        self.food_chunks = []
+        self.food_embeddings = None
         self.faiss_index = None
         
         # Initialize the system
-        self._create_knowledge_chunks()
-        self._create_embeddings()
+        self._extract_all_fitness_knowledge()
+        self._create_food_chunks()
+        self._create_food_embeddings()
         self._build_faiss_index()
     
     def _load_fitness_data(self) -> Dict[str, Any]:
         """Load fitness knowledge base from JSON"""
-        with open(self.json_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        if os.path.exists(self.json_path):
+            with open(self.json_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        else:
+            # Return empty dict if file doesn't exist
+            return {}
     
     def _load_food_data(self) -> pd.DataFrame:
         """Load food database from CSV"""
         return pd.read_csv(self.csv_path, sep=';')
     
-    def _create_knowledge_chunks(self):
-        """Create searchable chunks from fitness knowledge base and food data"""
-        
-        # Process fitness knowledge base
-        self._process_formulas()
-        self._process_nutrients()
-        self._process_training_zones()
-        self._process_body_composition()
-        self._process_supplements()
-        self._process_timing_protocols()
-        self._process_individual_factors()
-        
-        # Process food database
-        self._process_food_database()
-    
-    def _process_formulas(self):
-        """Process BMR formulas and activity multipliers"""
-        formulas = self.fitness_data.get('formulas', {})
-        
-        # BMR equations
-        bmr_equations = formulas.get('bmr_equations', {})
-        for equation_name, details in bmr_equations.items():
-            chunk = {
-                'type': 'formula',
-                'category': 'bmr',
-                'name': equation_name,
-                'content': f"Fórmula {equation_name}: {details}",
-                'data': details
-            }
-            self.knowledge_chunks.append(chunk)
-        
-        # Activity multipliers
-        activity_mult = formulas.get('activity_multipliers', {})
-        chunk = {
-            'type': 'formula',
-            'category': 'activity',
-            'name': 'multiplicadores_atividade',
-            'content': f"Multiplicadores de atividade física: {activity_mult}",
-            'data': activity_mult
+    def _extract_all_fitness_knowledge(self):
+        """Extract all information from fitness knowledge base without chunking"""
+        self.fitness_knowledge = {
+            'formulas': self.fitness_data.get('formulas', {}),
+            'nutrients': self.fitness_data.get('nutrients', {}),
+            'training_zones': self.fitness_data.get('training_zones', []),
+            'body_composition': self.fitness_data.get('body_composition', {}),
+            'supplements': self.fitness_data.get('supplements', {}),
+            'timing_protocols': self.fitness_data.get('timing_protocols', {}),
+            'individual_factors': self.fitness_data.get('individual_factors', {}),
+            'dietary_guidelines': self.fitness_data.get('dietary_guidelines', {}),
+            'hydration': self.fitness_data.get('hydration', {}),
+            'meal_timing': self.fitness_data.get('meal_timing', {}),
+            'special_populations': self.fitness_data.get('special_populations', {}),
+            'metabolic_conditions': self.fitness_data.get('metabolic_conditions', {}),
+            'performance_nutrition': self.fitness_data.get('performance_nutrition', {}),
+            'recovery_nutrition': self.fitness_data.get('recovery_nutrition', {}),
+            'micronutrient_interactions': self.fitness_data.get('micronutrient_interactions', {}),
+            'food_safety': self.fitness_data.get('food_safety', {}),
+            'cooking_methods': self.fitness_data.get('cooking_methods', {}),
+            'portion_control': self.fitness_data.get('portion_control', {}),
+            'weight_management': self.fitness_data.get('weight_management', {}),
+            'sports_specific': self.fitness_data.get('sports_specific', {})
         }
-        self.knowledge_chunks.append(chunk)
-        
-        # Calorie adjustments
-        calorie_adj = formulas.get('calorie_adjustments', {})
-        for goal, details in calorie_adj.items():
-            chunk = {
-                'type': 'formula',
-                'category': 'calorie_adjustment',
-                'name': goal,
-                'content': f"Ajuste calórico para {goal}: {details}",
-                'data': details
-            }
-            self.knowledge_chunks.append(chunk)
     
-    def _process_nutrients(self):
-        """Process nutrient information"""
-        nutrients = self.fitness_data.get('nutrients', {})
-        for nutrient_name, details in nutrients.items():
-            chunk = {
-                'type': 'nutrient',
-                'category': 'micronutrient',
-                'name': nutrient_name,
-                'content': f"Nutriente {details['name']}: RDA masculino {details.get('rda_male', 'N/A')}, "
-                          f"RDA feminino {details.get('rda_female', 'N/A')}, "
-                          f"Fontes: {', '.join(details.get('food_sources', []))}, "
-                          f"Sintomas de deficiência: {', '.join(details.get('deficiency_symptoms', []))}, "
-                          f"Notas de interação: {details.get('interaction_notes', '')}",
-                'data': details
-            }
-            self.knowledge_chunks.append(chunk)
-    
-    def _process_training_zones(self):
-        """Process training zones information"""
-        zones = self.fitness_data.get('training_zones', [])
-        for zone in zones:
-            chunk = {
-                'type': 'training',
-                'category': 'zone',
-                'name': f"zona_{zone.get('zone', '')}",
-                'content': f"Zona {zone.get('zone', '')}: {zone.get('name', '')}, "
-                          f"FC: {zone.get('hr_percentage', [])}, "
-                          f"RPE: {zone.get('rpe_scale', [])}, "
-                          f"Substrato: {zone.get('primary_substrate', '')}, "
-                          f"Foco nutricional: {', '.join(zone.get('nutrition_focus', []))}, "
-                          f"Tempo de recuperação: {zone.get('recovery_time', '')}",
-                'data': zone
-            }
-            self.knowledge_chunks.append(chunk)
-    
-    def _process_body_composition(self):
-        """Process body composition information"""
-        body_comp = self.fitness_data.get('body_composition', {})
-        
-        # Body fat categories
-        bf_categories = body_comp.get('body_fat_categories', {})
-        for gender, categories in bf_categories.items():
-            chunk = {
-                'type': 'body_composition',
-                'category': 'body_fat',
-                'name': f"gordura_corporal_{gender}",
-                'content': f"Categorias de gordura corporal para {gender}: {categories}",
-                'data': categories
-            }
-            self.knowledge_chunks.append(chunk)
-        
-        # Metabolic adjustments
-        met_adj = body_comp.get('metabolic_adjustments', {})
-        for category, adjustments in met_adj.items():
-            chunk = {
-                'type': 'body_composition',
-                'category': 'metabolic_adjustment',
-                'name': category,
-                'content': f"Ajustes metabólicos para {category}: {adjustments}",
-                'data': adjustments
-            }
-            self.knowledge_chunks.append(chunk)
-    
-    def _process_supplements(self):
-        """Process supplement information"""
-        supplements = self.fitness_data.get('supplements', {})
-        for tier, supps in supplements.items():
-            for supp_name, details in supps.items():
-                chunk = {
-                    'type': 'supplement',
-                    'category': tier,
-                    'name': supp_name,
-                    'content': f"Suplemento {supp_name} (Tier {tier}): "
-                              f"Dosagem: {details.get('dosage', '')}, "
-                              f"Timing: {details.get('timing', '')}, "
-                              f"Benefícios: {', '.join(details.get('benefits', []))}, "
-                              f"Evidência: {details.get('evidence_grade', '')}",
-                    'data': details
-                }
-                self.knowledge_chunks.append(chunk)
-    
-    def _process_timing_protocols(self):
-        """Process nutrient timing protocols"""
-        timing = self.fitness_data.get('timing_protocols', {})
-        for protocol_name, details in timing.items():
-            chunk = {
-                'type': 'timing',
-                'category': 'protocol',
-                'name': protocol_name,
-                'content': f"Protocolo {protocol_name}: {details}",
-                'data': details
-            }
-            self.knowledge_chunks.append(chunk)
-    
-    def _process_individual_factors(self):
-        """Process individual factors (genetics, sex, age, training)"""
-        factors = self.fitness_data.get('individual_factors', {})
-        for factor_type, details in factors.items():
-            chunk = {
-                'type': 'individual_factor',
-                'category': factor_type,
-                'name': factor_type,
-                'content': f"Fatores individuais - {factor_type}: {details}",
-                'data': details
-            }
-            self.knowledge_chunks.append(chunk)
-    
-    def _process_food_database(self):
-        """Process food database into searchable chunks"""
+    def _create_food_chunks(self):
+        """Create searchable chunks only from food database"""
         for _, row in self.food_data.iterrows():
             # Clean and format food data
             food_name = row['Descrição dos alimentos']
@@ -227,33 +97,38 @@ class FitnessNutritionRAG:
                           f"Fibra: {fiber}g",
                 'data': row.to_dict()
             }
-            self.knowledge_chunks.append(chunk)
+            self.food_chunks.append(chunk)
     
-    def _create_embeddings(self):
-        """Create embeddings for all knowledge chunks"""
-        texts = [chunk['content'] for chunk in self.knowledge_chunks]
-        self.chunk_embeddings = self.model.encode(texts)
+    def _create_food_embeddings(self):
+        """Create embeddings only for food chunks"""
+        if self.food_chunks:
+            texts = [chunk['content'] for chunk in self.food_chunks]
+            self.food_embeddings = self.model.encode(texts)
     
     def _build_faiss_index(self):
-        """Build FAISS index for similarity search"""
-        dimension = self.chunk_embeddings.shape[1]
-        self.faiss_index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
-        
-        # Normalize embeddings for cosine similarity
-        faiss.normalize_L2(self.chunk_embeddings)
-        self.faiss_index.add(self.chunk_embeddings.astype('float32'))
+        """Build FAISS index only for food similarity search"""
+        if self.food_embeddings is not None:
+            dimension = self.food_embeddings.shape[1]
+            self.faiss_index = faiss.IndexFlatIP(dimension)  # Inner product for cosine similarity
+            
+            # Normalize embeddings for cosine similarity
+            faiss.normalize_L2(self.food_embeddings)
+            self.faiss_index.add(self.food_embeddings.astype('float32'))
     
-    def search_similar(self, query: str, k: int = 10) -> List[Dict[str, Any]]:
+    def search_similar_foods(self, query: str, k: int = 10) -> List[Dict[str, Any]]:
         """
-        Search for similar chunks based on query
+        Search for similar foods based on query using FAISS
         
         Args:
             query: Search query
-            k: Number of similar chunks to return
+            k: Number of similar foods to return
             
         Returns:
-            List of similar chunks with scores
+            List of similar food chunks with scores
         """
+        if self.faiss_index is None or self.food_embeddings is None:
+            return []
+            
         query_embedding = self.model.encode([query])
         faiss.normalize_L2(query_embedding)
         
@@ -261,7 +136,7 @@ class FitnessNutritionRAG:
         
         results = []
         for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
-            chunk = self.knowledge_chunks[idx].copy()
+            chunk = self.food_chunks[idx].copy()
             chunk['similarity_score'] = float(score)
             chunk['rank'] = i + 1
             results.append(chunk)
@@ -279,18 +154,10 @@ class FitnessNutritionRAG:
         Returns:
             Enhanced prompt with relevant context
         """
-        # Search for relevant information
-        relevant_chunks = self.search_similar(user_query, k=15)
+        # Search for relevant foods using FAISS
+        relevant_foods = self.search_similar_foods(user_query, k=10)
         
-        # Separate different types of information
-        formulas = [c for c in relevant_chunks if c['type'] == 'formula']
-        nutrients = [c for c in relevant_chunks if c['type'] == 'nutrient']
-        foods = [c for c in relevant_chunks if c['type'] == 'food']
-        supplements = [c for c in relevant_chunks if c['type'] == 'supplement']
-        timing = [c for c in relevant_chunks if c['type'] == 'timing']
-        individual_factors = [c for c in relevant_chunks if c['type'] == 'individual_factor']
-        
-        # Build the enhanced prompt
+        # Build the enhanced prompt with all fitness knowledge + relevant foods
         enhanced_prompt = f"""
 # SISTEMA DE PLANEJAMENTO NUTRICIONAL PERSONALIZADO
 
@@ -300,25 +167,70 @@ class FitnessNutritionRAG:
 ## SOLICITAÇÃO DO USUÁRIO:
 {user_query}
 
-## CONTEXTO CIENTÍFICO RELEVANTE:
+## BASE DE CONHECIMENTO CIENTÍFICO:
 
 ### FÓRMULAS E CÁLCULOS METABÓLICOS:
-{self._format_chunks(formulas[:3])}
+{self._format_fitness_section('formulas')}
 
 ### INFORMAÇÕES NUTRICIONAIS:
-{self._format_chunks(nutrients[:4])}
+{self._format_fitness_section('nutrients')}
 
-### ALIMENTOS DISPONÍVEIS:
-{self._format_chunks(foods[:5])}
+### ZONAS DE TREINAMENTO:
+{self._format_fitness_section('training_zones')}
+
+### COMPOSIÇÃO CORPORAL:
+{self._format_fitness_section('body_composition')}
 
 ### SUPLEMENTAÇÃO:
-{self._format_chunks(supplements[:2])}
+{self._format_fitness_section('supplements')}
 
-### TIMING NUTRICIONAL:
-{self._format_chunks(timing[:2])}
+### PROTOCOLOS DE TIMING NUTRICIONAL:
+{self._format_fitness_section('timing_protocols')}
 
 ### FATORES INDIVIDUAIS:
-{self._format_chunks(individual_factors[:2])}
+{self._format_fitness_section('individual_factors')}
+
+### DIRETRIZES DIETÉTICAS:
+{self._format_fitness_section('dietary_guidelines')}
+
+### HIDRATAÇÃO:
+{self._format_fitness_section('hydration')}
+
+### TIMING DAS REFEIÇÕES:
+{self._format_fitness_section('meal_timing')}
+
+### POPULAÇÕES ESPECIAIS:
+{self._format_fitness_section('special_populations')}
+
+### CONDIÇÕES METABÓLICAS:
+{self._format_fitness_section('metabolic_conditions')}
+
+### NUTRIÇÃO PARA PERFORMANCE:
+{self._format_fitness_section('performance_nutrition')}
+
+### NUTRIÇÃO PARA RECUPERAÇÃO:
+{self._format_fitness_section('recovery_nutrition')}
+
+### INTERAÇÕES DE MICRONUTRIENTES:
+{self._format_fitness_section('micronutrient_interactions')}
+
+### SEGURANÇA ALIMENTAR:
+{self._format_fitness_section('food_safety')}
+
+### MÉTODOS DE COCÇÃO:
+{self._format_fitness_section('cooking_methods')}
+
+### CONTROLE DE PORÇÕES:
+{self._format_fitness_section('portion_control')}
+
+### GERENCIAMENTO DE PESO:
+{self._format_fitness_section('weight_management')}
+
+### NUTRIÇÃO ESPECÍFICA POR ESPORTE:
+{self._format_fitness_section('sports_specific')}
+
+## ALIMENTOS RELEVANTES DA BASE TACO:
+{self._format_food_chunks(relevant_foods)}
 
 ## INSTRUÇÕES PARA O AGENTE:
 
@@ -327,7 +239,7 @@ Você é um nutricionista especializado em performance e composição corporal. 
 1. **ANÁLISE PERSONALIZADA**: Analise os dados do usuário (peso, gordura corporal, nível de atividade, restrições alimentares, objetivos) para criar um plano nutricional personalizado.
 
 2. **CÁLCULOS METABÓLICOS**: 
-   - Calcule o TMB usando as fórmulas apropriadas
+   - Calcule o TMB usando as fórmulas apropriadas da base de conhecimento
    - Determine o gasto energético total considerando o nível de atividade
    - Ajuste as calorias conforme o objetivo (déficit, superávit ou manutenção)
 
@@ -348,7 +260,7 @@ Você é um nutricionista especializado em performance e composição corporal. 
 
 6. **SUPLEMENTAÇÃO** (se necessário):
    - Recomende apenas suplementos tier 1 ou 2 se houver lacunas nutricionais
-   - Explique dosagem e timing
+   - Explique dosagem e timing baseado nas informações da base de conhecimento
 
 7. **MONITORAMENTO**:
    - Estabeleça métricas de acompanhamento
@@ -369,14 +281,22 @@ Forneça um plano estruturado contendo:
 
         return enhanced_prompt
     
-    def _format_chunks(self, chunks: List[Dict[str, Any]]) -> str:
-        """Format chunks for inclusion in prompt"""
+    def _format_fitness_section(self, section_name: str) -> str:
+        """Format fitness knowledge sections"""
+        section_data = self.fitness_knowledge.get(section_name, {})
+        if not section_data:
+            return "Não disponível na base de conhecimento."
+        
+        return json.dumps(section_data, indent=2, ensure_ascii=False)
+    
+    def _format_food_chunks(self, chunks: List[Dict[str, Any]]) -> str:
+        """Format food chunks for inclusion in prompt"""
         if not chunks:
-            return "Nenhuma informação relevante encontrada."
+            return "Nenhum alimento relevante encontrado."
         
         formatted = []
         for chunk in chunks:
-            formatted.append(f"- {chunk['name']}: {chunk['content'][:200]}...")
+            formatted.append(f"- {chunk['name']}: {chunk['content']}")
         
         return "\n".join(formatted)
     
@@ -393,13 +313,12 @@ Forneça um plano estruturado contendo:
         # Filter foods based on criteria
         filtered_foods = []
         
-        for chunk in self.knowledge_chunks:
-            if chunk['type'] == 'food':
-                food_data = chunk['data']
-                
-                # Apply filters
-                if self._meets_criteria(food_data, criteria):
-                    filtered_foods.append(chunk)
+        for chunk in self.food_chunks:
+            food_data = chunk['data']
+            
+            # Apply filters
+            if self._meets_criteria(food_data, criteria):
+                filtered_foods.append(chunk)
         
         return filtered_foods[:10]  # Return top 10
     
@@ -425,16 +344,98 @@ Forneça um plano estruturado contendo:
         except (ValueError, TypeError):
             return False
     
-    def save_index(self, filepath: str):
-        """Save FAISS index and chunks to disk"""
-        faiss.write_index(self.faiss_index, f"{filepath}.faiss")
-        
-        with open(f"{filepath}_chunks.pkl", 'wb') as f:
-            pickle.dump(self.knowledge_chunks, f)
-        
-        with open(f"{filepath}_embeddings.pkl", 'wb') as f:
-            pickle.dump(self.chunk_embeddings, f)
+    def get_fitness_knowledge(self) -> Dict[str, Any]:
+        """Get the complete fitness knowledge base"""
+        return self.fitness_knowledge
     
+    def save_index(self, filepath: str):
+        """Save FAISS index and food chunks to disk"""
+        if self.faiss_index:
+            faiss.write_index(self.faiss_index, f"{filepath}.faiss")
+        
+        with open(f"{filepath}_food_chunks.pkl", 'wb') as f:
+            pickle.dump(self.food_chunks, f)
+        
+        if self.food_embeddings is not None:
+            with open(f"{filepath}_food_embeddings.pkl", 'wb') as f:
+                pickle.dump(self.food_embeddings, f)
+        
+        with open(f"{filepath}_fitness_knowledge.pkl", 'wb') as f:
+            pickle.dump(self.fitness_knowledge, f)
+    
+    def load_index(self, filepath: str):
+        """Load FAISS index and chunks from disk"""
+        try:
+            if os.path.exists(f"{filepath}.faiss"):
+                self.faiss_index = faiss.read_index(f"{filepath}.faiss")
+            
+            if os.path.exists(f"{filepath}_food_chunks.pkl"):
+                with open(f"{filepath}_food_chunks.pkl", 'rb') as f:
+                    self.food_chunks = pickle.load(f)
+            
+            if os.path.exists(f"{filepath}_food_embeddings.pkl"):
+                with open(f"{filepath}_food_embeddings.pkl", 'rb') as f:
+                    self.food_embeddings = pickle.load(f)
+            
+            if os.path.exists(f"{filepath}_fitness_knowledge.pkl"):
+                with open(f"{filepath}_fitness_knowledge.pkl", 'rb') as f:
+                    self.fitness_knowledge = pickle.load(f)
+            
+            return True
+        except Exception as e:
+            print(f"Erro ao carregar índices: {e}")
+            return False
+
+
+# Example usage
+if __name__ == "__main__":
+    # Initialize RAG system
+    rag = FitnessNutritionRAG(
+        json_path="fitness_knowledge_base.json",
+        csv_path="taco-main/tabelas/alimentos.csv"
+    )
+    
+    # Example user data
+    user_data = {
+        "peso_kg": 70,
+        "altura_cm": 175,
+        "idade": 30,
+        "sexo": "masculino",
+        "gordura_corporal_pct": 15,
+        "nivel_atividade": "moderate_activity",
+        "objetivo": "muscle_gain",
+        "restricoes_alimentares": [],
+        "preferencias": "sem preferências específicas"
+    }
+    
+    # Example query
+    user_query = "Preciso de um plano alimentar para ganho de massa muscular"
+    
+    # Create enhanced prompt
+    enhanced_prompt = rag.create_diet_prompt(user_query, user_data)
+    
+    # Save prompt to file
+    output_file = "enhanced_prompt_output.txt"
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write("=== PROMPT APRIMORADO PARA LLM ===\n\n")
+        f.write(enhanced_prompt)
+        f.write("\n\n=== ESTATÍSTICAS DO SISTEMA ===\n")
+        f.write(f"Total de alimentos na base TACO: {len(rag.food_chunks)}\n")
+        f.write(f"Seções da base de conhecimento fitness: {list(rag.fitness_knowledge.keys())}\n")
+        
+        # Example: Get high-protein food recommendations
+        protein_criteria = {"min_protein": 15, "category": "Carnes e derivados"}
+        protein_foods = rag.get_food_recommendations(protein_criteria)
+        
+        f.write("\n=== RECOMENDAÇÕES DE ALIMENTOS RICOS EM PROTEÍNA ===\n")
+        for food in protein_foods[:5]:
+            f.write(f"- {food['name']}: {food['data']['Proteína (g)']}g proteína\n")
+    
+    print(f"Prompt salvo no arquivo: {output_file}")
+    print(f"Total de alimentos processados: {len(rag.food_chunks)}")
+    print(f"Seções do conhecimento fitness extraídas: {len(rag.fitness_knowledge)}")
+    if rag.food_embeddings is not None:
+        print(f"Dimensão dos embeddings dos alimentos: {rag.food_embeddings.shape}")
     def load_index(self, filepath: str):
         """Load FAISS index and chunks from disk"""
         if os.path.exists(f"{filepath}.faiss"):
