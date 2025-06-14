@@ -1,0 +1,98 @@
+=== PROMPT APRIMORADO PARA LLM ===
+
+
+# SISTEMA DE PLANEJAMENTO NUTRICIONAL PERSONALIZADO
+
+## DADOS DO USUÁRIO:
+{
+  "peso_kg": 70,
+  "altura_cm": 175,
+  "idade": 30,
+  "sexo": "masculino",
+  "gordura_corporal_pct": 15,
+  "nivel_atividade": "moderate_activity",
+  "objetivo": "muscle_gain",
+  "restricoes_alimentares": [],
+  "preferencias": "sem preferências específicas"
+}
+
+## SOLICITAÇÃO DO USUÁRIO:
+Preciso de um plano alimentar para ganho de massa muscular
+
+## CONTEXTO CIENTÍFICO RELEVANTE:
+
+### FÓRMULAS E CÁLCULOS METABÓLICOS:
+- muscle_gain: Ajuste calórico para muscle_gain: {'surplus': 300, 'max_surplus': 500, 'protein_target': 2.2}...
+
+### INFORMAÇÕES NUTRICIONAIS:
+Nenhuma informação relevante encontrada.
+
+### ALIMENTOS DISPONÍVEIS:
+- Baião de dois, arroz e feijão-de-corda: Alimento: Baião de dois, arroz e feijão-de-corda, Categoria: Alimentos preparados, Energia: 136 kcal, Proteína: 6,2g, Carboidrato: 20,4g, Gordura: 3,2g, Fibra: 5,1g...
+- Feijão tropeiro mineiro: Alimento: Feijão tropeiro mineiro, Categoria: Alimentos preparados, Energia: 152 kcal, Proteína: 10,2g, Carboidrato: 19,6g, Gordura: 6,8g, Fibra: 3,6g...
+- Bacalhau, salgado, refogado: Alimento: Bacalhau, salgado, refogado, Categoria: Pescados e frutos do mar, Energia: 140 kcal, Proteína: 24g, Carboidrato: 1,2g, Gordura: 3,6g, Fibra: *g...
+- Cuscuz, de milho, cozido com sal: Alimento: Cuscuz, de milho, cozido com sal, Categoria: Alimentos preparados, Energia: 113 kcal, Proteína: 2,2g, Carboidrato: 25,3g, Gordura: 0,7g, Fibra: 2,1g...
+- Amêndoa, torrada, salgada: Alimento: Amêndoa, torrada, salgada, Categoria: Nozes e sementes, Energia: 581 kcal, Proteína: 18,6g, Carboidrato: 29,5g, Gordura: 47,3g, Fibra: 11,6g...
+
+### SUPLEMENTAÇÃO:
+Nenhuma informação relevante encontrada.
+
+### TIMING NUTRICIONAL:
+Nenhuma informação relevante encontrada.
+
+### FATORES INDIVIDUAIS:
+Nenhuma informação relevante encontrada.
+
+## INSTRUÇÕES PARA O AGENTE:
+
+Você é um nutricionista especializado em performance e composição corporal. Sua função é:
+
+1. **ANÁLISE PERSONALIZADA**: Analise os dados do usuário (peso, gordura corporal, nível de atividade, restrições alimentares, objetivos) para criar um plano nutricional personalizado.
+
+2. **CÁLCULOS METABÓLICOS**: 
+   - Calcule o TMB usando as fórmulas apropriadas
+   - Determine o gasto energético total considerando o nível de atividade
+   - Ajuste as calorias conforme o objetivo (déficit, superávit ou manutenção)
+
+3. **DISTRIBUIÇÃO DE MACRONUTRIENTES**:
+   - Estabeleça as necessidades de proteína baseadas no peso e objetivo
+   - Calcule carboidratos conforme o nível de atividade e timing
+   - Determine gorduras para otimização hormonal
+
+4. **SELEÇÃO DE ALIMENTOS**:
+   - Use APENAS alimentos da base de dados TACO fornecida
+   - Priorize alimentos densos nutricionalmente
+   - Considere preferências e restrições alimentares
+
+5. **TIMING E FREQUÊNCIA**:
+   - Distribua as refeições otimamente ao longo do dia
+   - Considere timing pré/pós treino se aplicável
+   - Ajuste conforme rotina do usuário
+
+6. **SUPLEMENTAÇÃO** (se necessário):
+   - Recomende apenas suplementos tier 1 ou 2 se houver lacunas nutricionais
+   - Explique dosagem e timing
+
+7. **MONITORAMENTO**:
+   - Estabeleça métricas de acompanhamento
+   - Sugira ajustes conforme progresso
+
+## FORMATO DA RESPOSTA:
+
+Forneça um plano estruturado contendo:
+- Resumo dos cálculos metabólicos
+- Distribuição de macronutrientes
+- Cardápio detalado com quantidades
+- Orientações de timing
+- Recomendações de suplementação (se aplicável)
+- Estratégias de monitoramento
+
+**IMPORTANTE**: Use apenas alimentos da base TACO e seja específico com quantidades e horários.
+
+
+=== RECOMENDAÇÕES DE ALIMENTOS RICOS EM PROTEÍNA ===
+- Carne, bovina, acém, moído, cozido: 26,7g proteína
+- Carne, bovina, acém, moído, cru: 19,4g proteína
+- Carne, bovina, acém, sem gordura, cozido: 27,3g proteína
+- Carne, bovina, acém, sem gordura, cru: 20,8g proteína
+- Carne, bovina, almôndegas, fritas: 18,2g proteína
