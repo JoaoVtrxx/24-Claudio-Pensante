@@ -27,9 +27,9 @@ class ChatBotModel extends FlutterFlowModel<ChatBotWidget> {
   FocusNode? textFieldFocusNode;
   TextEditingController? textController;
   String? Function(BuildContext, String?)? textControllerValidator;
-  // Stores action output result for [Backend Call - API (DifyChat )] action in IconButton widget.
+  // Stores action output result for [Backend Call - API (dify)] action in IconButton widget.
   ApiCallResponse? apiResultwnx;
-  // Stores action output result for [Backend Call - API (DifyChat )] action in IconButton widget.
+  // Stores action output result for [Backend Call - API (dify)] action in IconButton widget.
   ApiCallResponse? apiResultxh3;
 
   @override

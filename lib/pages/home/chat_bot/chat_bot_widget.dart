@@ -680,7 +680,7 @@ class _ChatBotWidgetState extends State<ChatBotWidget>
                                                 FFAppState().conversationId !=
                                                     '') {
                                               _model.apiResultwnx =
-                                                  await DifyChatCall.call(
+                                                  await DifyCall.call(
                                                 conversationId:
                                                     FFAppState().conversationId,
                                                 userId: currentUserUid,
@@ -695,12 +695,11 @@ class _ChatBotWidgetState extends State<ChatBotWidget>
                                                 await ChatRecord.createDoc(
                                                         currentUserReference!)
                                                     .set(createChatRecordData(
-                                                  mensagem:
-                                                      DifyChatCall.resposta(
+                                                  mensagem: DifyCall.answer(
                                                     (_model.apiResultwnx
                                                             ?.jsonBody ??
                                                         ''),
-                                                  ),
+                                                  ).toString(),
                                                   enviadoDoUsuario: false,
                                                   dataHora: getCurrentTimestamp,
                                                 ));
@@ -711,7 +710,7 @@ class _ChatBotWidgetState extends State<ChatBotWidget>
                                               }
                                             } else {
                                               _model.apiResultxh3 =
-                                                  await DifyChatCall.call(
+                                                  await DifyCall.call(
                                                 userId: currentUserUid,
                                                 userMessage:
                                                     FFAppState().userMessage,
@@ -722,22 +721,21 @@ class _ChatBotWidgetState extends State<ChatBotWidget>
                                                       ?.succeeded ??
                                                   true)) {
                                                 FFAppState().conversationId =
-                                                    DifyChatCall.conversationid(
+                                                    DifyCall.conversationid(
                                                   (_model.apiResultxh3
                                                           ?.jsonBody ??
                                                       ''),
-                                                )!;
+                                                ).toString();
                                                 safeSetState(() {});
 
                                                 await ChatRecord.createDoc(
                                                         currentUserReference!)
                                                     .set(createChatRecordData(
-                                                  mensagem:
-                                                      DifyChatCall.resposta(
+                                                  mensagem: DifyCall.answer(
                                                     (_model.apiResultxh3
                                                             ?.jsonBody ??
                                                         ''),
-                                                  ),
+                                                  ).toString(),
                                                   enviadoDoUsuario: false,
                                                   dataHora: getCurrentTimestamp,
                                                 ));

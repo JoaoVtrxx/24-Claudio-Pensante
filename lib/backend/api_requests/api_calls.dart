@@ -21,7 +21,7 @@ class DifyChatCall {
 {
   "inputs": {},
   "query": "${escapeStringForJson(userMessage)}",
-  "response_mode": "blocking",
+  "response_mode": "streaming",
   "conversation_id": "${escapeStringForJson(conversationId)}",
   "user": "${escapeStringForJson(userId)}"
 }''';
@@ -31,7 +31,7 @@ class DifyChatCall {
       callType: ApiCallType.POST,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer app-pL38Nz3FtZ8O3CtTwqxewXtg',
+        'Authorization': 'Bearer app-lDfYz5Zi2wTUQbzDUGoQzZzQ',
       },
       params: {},
       body: ffApiRequestBody,
@@ -54,6 +54,48 @@ class DifyChatCall {
         response,
         r'''$.answer''',
       ));
+}
+
+class DifyCall {
+  static Future<ApiCallResponse> call({
+    String? conversationId = '',
+    String? userId = '',
+    String? userMessage = '',
+  }) async {
+    final ffApiRequestBody = '''
+{
+  "query": "${escapeStringForJson(userMessage)}",
+  "conversation_id": "${escapeStringForJson(conversationId)}",
+  "user": "${escapeStringForJson(userId)}"
+}''';
+    return ApiManager.instance.makeApiCall(
+      callName: 'dify',
+      apiUrl:
+          'https://us-central1-code-race-2aa77.cloudfunctions.net/difyProxy',
+      callType: ApiCallType.POST,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: {},
+      body: ffApiRequestBody,
+      bodyType: BodyType.JSON,
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
+
+  static dynamic conversationid(dynamic response) => getJsonField(
+        response,
+        r'''$.conversation_id''',
+      );
+  static dynamic answer(dynamic response) => getJsonField(
+        response,
+        r'''$.answer''',
+      );
 }
 
 class ApiPagingParams {
