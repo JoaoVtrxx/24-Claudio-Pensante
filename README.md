@@ -84,4 +84,5 @@ Isso garante adesão, autonomia e resultados reais para quem busca um estilo de 
 	- 3.  Interaja com a IA para receber orientações adaptativas;  
 	      
 	    
-	- 4.  Mantenha sua alimentação ajustada à sua realidade!
+	- 4.  Mantenha sua alimentação ajustada à sua realidade!!
+
